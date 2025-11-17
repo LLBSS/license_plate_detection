@@ -1,0 +1,14 @@
+# 检测所有颜色的车牌（默认）
+python main.py car_image.jpg
+
+# 不使用颜色检测，只基于纹理特征
+python main.py car1.jpg --no-color
+
+# 只检测蓝色车牌
+python main.py ./examples/car1.jpg --color blue
+
+# 只检测黄色车牌
+python main.py ./examples/car1.jpg --color white
+
+# 显示颜色掩码
+python main.py ./examples/car1.jpg --display-masks
