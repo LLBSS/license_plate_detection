@@ -1,0 +1,27 @@
+# 忽略所有文件
+*
+
+# 跟踪Python源文件
+!*.py
+
+# 跟踪项目配置文件
+!.gitignore
+!README.md
+!requirements.txt
+!setup.py
+!pyproject.toml
+
+# 跟踪必要的文件夹结构
+!src/
+!license_plate_detection/
+
+# 但忽略编译缓存和虚拟环境
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+.env
+.venv/
+venv/
