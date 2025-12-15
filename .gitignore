@@ -1,0 +1,53 @@
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# Python编译缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 示例图片目录
+examples/
+examples-color/
+
+# 临时文件
+nothing.txt
+*.tmp
+*.temp
+
+# 日志文件
+*.log
+logs/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# IDE配置文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 操作系统生成文件
+.DS_Store
+Thumbs.db
+
+# 构建文件
+build/
+dist/
+*.egg-info/
+
+# 测试相关
+.pytest_cache/
+.coverage
+coverage.xml
+
+# 其他临时文件
+*.bak
+*.backup
