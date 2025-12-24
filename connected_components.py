@@ -87,6 +87,63 @@ class ConnectedComponentsApp:
         bgr_image = cv2.cvtColor(self.original_image, cv2.COLOR_GRAY2BGR)
         self.display_image(bgr_image, "原图")
     
+    def save_component_info(self, image_path, num_labels, labels, stats, centroids, area_threshold, total_area):
+        """
+        保存筛选后的连通组件信息到txt文件
+        """
+        # 创建test-txt文件夹（如果不存在）
+        os.makedirs("test-txt", exist_ok=True)
+        
+        # 提取输入图像的文件名（不含扩展名）
+        filename = os.path.splitext(os.path.basename(image_path))[0]
+        txt_path = os.path.join("test-txt", f"{filename}.txt")
+        
+        # 收集符合条件的连通组件信息
+        component_info = []
+        for i in range(num_labels):
+            area = stats[i, cv2.CC_STAT_AREA]
+            # 跳过背景和面积小于阈值的组件
+            if i == 0 or area < area_threshold:
+                continue  
+            
+            x = stats[i, cv2.CC_STAT_LEFT]
+            y = stats[i, cv2.CC_STAT_TOP]
+            w = stats[i, cv2.CC_STAT_WIDTH]
+            h = stats[i, cv2.CC_STAT_HEIGHT]
+            cx = centroids[i, 0]
+            cy = centroids[i, 1]
+            area_ratio = (area / total_area) * 100
+            
+            # 计算填充率并进行第二次判断
+            bounding_area = w * h
+            fill_ratio = (area / bounding_area) * 100
+            if fill_ratio >= 15:
+                component_info.append({
+                    'id': i,
+                    'area': area,
+                    'area_ratio': area_ratio,
+                    'fill_ratio': fill_ratio,
+                    'bounding_box': (x, y, w, h),
+                    'centroid': (cx, cy)
+                })
+        
+        # 写入txt文件
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write("筛选后的连通组件信息（面积≥0.2%且填充率≥15%）\n")
+            f.write("=" * 80 + "\n")
+            f.write(f"图像文件名：{os.path.basename(image_path)}\n")
+            f.write(f"总筛选后的组件数量：{len(component_info)}\n")
+            f.write(f"图像总面积：{total_area} 像素\n")
+            f.write(f"面积阈值（0.2%）：{area_threshold:.0f} 像素\n")
+            f.write("=" * 80 + "\n")
+            f.write("组件ID | 面积(像素) | 占比(%) | 填充率(%) | 边界框(x, y, w, h) | 质心坐标(cx, cy)\n")
+            f.write("-" * 105 + "\n")
+            for info in component_info:
+                f.write(f"{info['id']:4d} | {info['area']:10d} | {info['area_ratio']:5.1f}% | {info['fill_ratio']:5.1f}% | ({info['bounding_box'][0]:4d}, {info['bounding_box'][1]:4d}, {info['bounding_box'][2]:4d}, {info['bounding_box'][3]:4d}) | ({info['centroid'][0]:6.1f}, {info['centroid'][1]:6.1f})\n")
+            f.write("-" * 105 + "\n")
+        
+        print(f"\n连通组件信息已保存到：{txt_path}")
+    
     def process_image(self):
         """
         检测连通组件并进行标记
@@ -103,8 +160,7 @@ class ConnectedComponentsApp:
         # 计算图像总面积和0.2%阈值
         image_height, image_width = binary_image.shape
         total_area = image_height * image_width
-        area_threshold = total_area * 0.002 # 0.2%的面积阈值
-        
+        area_threshold = total_area * 0.001 # 0.2%的面积阈值
         # 统计符合条件的物体数量
         valid_objects = 0
         for i in range(1, num_labels):  # 从1开始，不包括背景
@@ -148,6 +204,9 @@ class ConnectedComponentsApp:
             if fill_ratio >= 15:
                 print(f"{i:4d} | {area:10d} | {area_ratio:5.1f}% | {fill_ratio:5.1f}% | ({x:4d}, {y:4d}, {w:4d}, {h:4d}) | ({cx:6.1f}, {cy:6.1f})")
         print("-" * 105)
+        
+        # 保存连通组件信息到txt文件
+        self.save_component_info(self.image_path, num_labels, labels, stats, centroids, area_threshold, total_area)
         
         # 生成随机颜色用于标记不同的连通组  要改
         colors = []

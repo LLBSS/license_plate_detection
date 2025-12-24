@@ -19,7 +19,7 @@ class BinarySubtractionApp:
         # 二值化参数 - 只保留一个二值化处理的参数
         self.params = {
             "二值化图像": {
-                "threshold_value": tk.IntVar(value=127),
+                "threshold_value": tk.IntVar(value=200),
                 "reverse": tk.BooleanVar(value=False)
             },
             "侵蚀": {
@@ -27,6 +27,8 @@ class BinarySubtractionApp:
                 "kernel_shape": tk.StringVar(value="矩形")
             }
         }
+        # 加载亮度阈值结果
+        self.brightness_thresholds = self.load_brightness_thresholds()
         self.create_widgets()
     def create_widgets(self):
         """
@@ -94,6 +96,31 @@ class BinarySubtractionApp:
             canvas.pack(fill=tk.BOTH, expand=True)
             self.canvas_frames[name] = frame
             self.image_canvases[name] = canvas
+    def load_brightness_thresholds(self):
+        """
+        从brightness_threshold_batch_result.txt加载亮度阈值
+        :return: 包含文件名和对应阈值的字典
+        """
+        thresholds = {}
+        result_file = "brightness_threshold_batch_result.txt"
+        try:
+            with open(result_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                # 跳过前3行标题
+                for line in lines[3:]:
+                    line = line.strip()
+                    if line:
+                        parts = line.split("\t")
+                        if len(parts) >= 2:
+                            filename = parts[0]
+                            threshold_90 = int(parts[1])
+                            thresholds[filename] = threshold_90+30
+        except FileNotFoundError:
+            print(f"警告：未找到阈值文件 {result_file}")
+        except Exception as e:
+            print(f"加载阈值文件时出错：{e}")
+        return thresholds
+    
     def select_image(self):
         """
         选择单张图片
@@ -103,7 +130,18 @@ class BinarySubtractionApp:
         )
         if file_path:
             self.image_path = file_path
-            self.path_label.config(text=os.path.basename(file_path))
+            filename = os.path.basename(file_path)
+            self.path_label.config(text=filename)
+            
+            # 检查是否有对应的亮度阈值
+            if filename in self.brightness_thresholds:
+                threshold = self.brightness_thresholds[filename]
+                self.params["二值化图像"]["threshold_value"].set(threshold)
+                print(f"已使用自动计算的阈值：{threshold} (来自{filename})")
+            else:
+                # 使用默认阈值200
+                print(f"未找到{filename}的阈值，使用默认阈值200")
+            
             self.process_image()
     def process_image(self):
         """
@@ -201,15 +239,26 @@ class BinarySubtractionApp:
         保存最终的侵蚀结果图像
         """
         if "侵蚀结果" in self.processed_images:
+            # 确保保存目录存在
+            save_dir = "examples-binary"
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+            
             # 打开文件保存对话框
             save_path = filedialog.asksaveasfilename(
                 defaultextension=".png",
                 filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg"), ("BMP files", "*.bmp")],
                 title="保存侵蚀结果图像"
             )
+            
             if save_path:
+                # 获取文件名
+                filename = os.path.basename(save_path)
+                # 构造保存路径
+                final_save_path = os.path.join(save_dir, filename)
                 # 保存图像
-                cv2.imwrite(save_path, self.processed_images["侵蚀结果"])
+                cv2.imwrite(final_save_path, self.processed_images["侵蚀结果"])
+                print(f"图像已保存到：{final_save_path}")
 
 def main():
     # 创建Tkinter应用程序
