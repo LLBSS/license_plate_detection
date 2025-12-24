@@ -10,7 +10,7 @@ __pycache__/
 *.pyd
 
 # 示例图片目录
-examples/
+# examples/  # 不忽略examples文件夹
 examples-color/
 
 # 临时文件
@@ -51,3 +51,15 @@ coverage.xml
 # 其他临时文件
 *.bak
 *.backup
+
+# 忽略根目录下除指定文件夹外的所有文件夹
+/*/
+!/examples/
+!/字符模板/
+
+# 确保指定文件夹内的所有文件都能被提交
+!/examples/**/*
+!/字符模板/**/*
+
+# 只提交.py文件
+!*.py

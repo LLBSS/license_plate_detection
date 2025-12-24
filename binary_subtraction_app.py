@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 import numpy as np
-
+#图像二值化
 class BinarySubtractionApp:
     def __init__(self, root):
         self.root = root

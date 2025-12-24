@@ -68,17 +68,40 @@ class ImageSplitter:
         # 获取所有txt文件
         txt_files = glob.glob(os.path.join(self.txt_folder, "*.txt"))
         
+        # 获取所有图像文件
+        image_files = glob.glob(os.path.join(self.image_folder, "*.jpg"))
+        image_files += glob.glob(os.path.join(self.image_folder, "*.png"))
+        image_files += glob.glob(os.path.join(self.image_folder, "*.bmp"))
+        
         for txt_file in txt_files:
-            # 提取文件名（不含扩展名）
-            filename = os.path.splitext(os.path.basename(txt_file))[0]
+            # 提取txt文件名（不含扩展名）
+            txt_filename = os.path.splitext(os.path.basename(txt_file))[0]
             
-            # 对应的图像文件路径
-            image_path = os.path.join(self.image_folder, f"{filename}.jpg")
+            # 查找匹配的图像文件
+            matched_image_path = None
+            max_match_length = 0
             
-            # 检查图像文件是否存在
-            if not os.path.exists(image_path):
-                print(f"图像文件 {image_path} 不存在，跳过处理")
+            for image_path in image_files:
+                image_basename = os.path.basename(image_path)
+                image_filename = os.path.splitext(image_basename)[0]
+                
+                # 检查图像文件名是否是txt文件名的前缀，或者txt文件名是否是图像文件名的前缀
+                if txt_filename.startswith(image_filename) or image_filename.startswith(txt_filename):
+                    # 计算匹配长度
+                    match_length = min(len(txt_filename), len(image_filename))
+                    if match_length > max_match_length:
+                        max_match_length = match_length
+                        matched_image_path = image_path
+                        matched_filename = image_filename
+            
+            # 检查是否找到匹配的图像文件
+            if not matched_image_path:
+                print(f"未找到与 {txt_file} 匹配的图像文件，跳过处理")
                 continue
+            
+            # 使用匹配的图像文件
+            image_path = matched_image_path
+            filename = matched_filename
             
             # 读取图像
             image = cv2.imread(image_path)

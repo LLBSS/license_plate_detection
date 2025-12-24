@@ -64,6 +64,7 @@ class ConnectedComponentsApp:
         选择二值化图片
         """
         file_path = filedialog.askopenfilename(
+            initialdir="examples-binary",  # 设置默认路径
             filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp"), ("All files", "*.*")]
         )
         if file_path:

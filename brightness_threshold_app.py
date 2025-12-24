@@ -5,7 +5,7 @@ import os
 import glob
 import tkinter as tk
 from tkinter import filedialog
-
+#计算阈值
 def calculate_brightness_threshold(image_path):
     """
     计算图片的亮度阈值
